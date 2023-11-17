@@ -1,10 +1,10 @@
 import { useState } from "react";
 
-const initialItems = [
+/* const initialItems = [
   { id: 1, description: "Passports", quantity: 2, packed: false },
   { id: 2, description: "Socks", quantity: 12, packed: true },
   { id: 3, description: "Charger", quantity: 1, packed: false },
-];
+]; */
 
 export default function App() {
   const [items, setItems] = useState([]);
@@ -13,11 +13,28 @@ export default function App() {
     setItems((items) => [...items, newItem]);
   };
 
+  const handleDeleteItem = function (id) {
+    setItems((items) => items.filter((item) => item.id !== id));
+  };
+
+  // to toggle the packed status of item
+  const handleToggleItem = function (id) {
+    setItems((items) =>
+      items.map((item) =>
+        item.id === id ? { ...item, packed: !item.packed } : item
+      )
+    );
+  };
+
   return (
     <div className="app">
       <Logo />
       <Form onAddItems={handleAddItems} />
-      <PackingList items={items} />
+      <PackingList
+        items={items}
+        onDeleteItem={handleDeleteItem}
+        onToggleItem={handleToggleItem}
+      />
       <Stats />
     </div>
   );
@@ -33,15 +50,15 @@ function Form({ onAddItems }) {
 
   const handleSubmit = function (e) {
     e.preventDefault();
-    console.log(quantity, description);
+    // console.log(quantity, description);
     if (!description) return;
 
     const newItem = { description, quantity, packed: false, id: Date.now() };
-    console.log(newItem);
+    // console.log(newItem);
     onAddItems(newItem);
 
     setDescription("");
-    setQuantity(0);
+    setQuantity(1);
   };
 
   return (
@@ -55,16 +72,17 @@ function Form({ onAddItems }) {
         onChange={(e) => setQuantity(Number(e.target.value))}
       >
         {
-          /* Array.from({ length: 20 }, (_, i) => i + 1).map((num) => (
-          <option value={num} key={num}>
-            {num}
-          </option>
-        )) */
-          Array.from({ length: 20 }, (_, i) => (
-            <option value={i + 1} key={i + 1}>
-              {i + 1}
+          Array.from({ length: 20 }, (_, i) => i + 1).map((num) => (
+            <option value={num} key={num}>
+              {num}
             </option>
           ))
+          // BELOW CODE NOT WORKING -- WILL FIGURE OUT WHY!
+          // Array.from({ length: 20 }, (_, i) => (
+          //   <option value={i + 1} key={i + 1}>
+          //     {i + 1}
+          //   </option>
+          // ))
         }
       </select>
       <input
@@ -78,26 +96,37 @@ function Form({ onAddItems }) {
   );
 }
 
-function PackingList({ items }) {
+function PackingList({ items, onDeleteItem, onToggleItem }) {
   return (
     <div className="list">
       <ul>
         {items.map((item) => (
-          <Item item={item} key={item.id} />
+          <Item
+            item={item}
+            onDeleteItem={onDeleteItem}
+            onToggleItem={onToggleItem}
+            key={item.id}
+          />
         ))}
       </ul>
     </div>
   );
 }
 
-function Item({ item }) {
+function Item({ item, onDeleteItem, onToggleItem }) {
   return (
     <li>
+      {/* The value of the input element with type "checkbox" will be true/false */}
+      <input
+        type="checkbox"
+        value={item.packed}
+        onChange={(e) => onToggleItem(item.id)}
+      />
       {/* conditionally styling: if the item is packed, then we strike through that item */}
       <span style={item.packed ? { textDecoration: "line-through" } : {}}>
         {item.quantity} {item.description}
       </span>
-      <button>❌</button>
+      <button onClick={(e) => onDeleteItem(item.id)}>❌</button>
     </li>
   );
 }
